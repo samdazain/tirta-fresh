@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Int
+  stock     Int
+  imageUrl  String
+  category  ProductCategory
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductCategory {
+  GALON
+  BOTOL
+  GELAS
+  LAINNYA
+}
+
+model Village {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  orders Order[]
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  customerName String
+  fullAddress  String
+  items      Json
+  villageId  Int
+  status     OrderStatus
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  payment    Payment?
+  paymentId  Int?
+
+  invoice    Invoice?
+
+  village    Village     @relation(fields: [villageId], references: [id])
+}
+
+enum OrderStatus {
+  SELESAI
+  DALAM_PENGIRIMAN
+  DITANGGUHKAN
+}
+
+model Payment {
+  id       Int     @id @default(autoincrement())
+  blobData Bytes
+  createdAt DateTime @default(now())
+
+  order    Order?  @relation(fields: [orderId], references: [id])
+  orderId  Int?    @unique
+}
+
+model Invoice {
+  id        Int      @id @default(autoincrement())
+  total     Int
+  createdAt DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int      @unique
+}
+
+model SalesReport {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  totalSales Int
+  createdAt  DateTime @default(now())
+}

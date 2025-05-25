@@ -1,0 +1,53 @@
+{
+  "name": "tirta-fresh",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "tsx prisma/seed.tsx"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.tsx"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@prisma/client": "^6.8.2",
+    "@react-google-maps/api": "^2.20.6",
+    "bcrypt": "^5.1.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
+    "jose": "^6.0.11",
+    "jsonwebtoken": "^9.0.2",
+    "leaflet": "^1.9.4",
+    "leaflet-defaulticon-compatibility": "^0.1.2",
+    "lucide-react": "^0.511.0",
+    "next": "15.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-leaflet": "^5.0.0",
+    "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/leaflet": "^1.9.17",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.1",
+    "prisma": "^6.8.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.4",
+    "tw-animate-css": "^1.3.0",
+    "typescript": "^5.8.3"
+  }
+}
