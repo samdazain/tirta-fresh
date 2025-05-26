@@ -1,9 +1,10 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
     PlusIcon,
     ClipboardDocumentListIcon,
-    TruckIcon,
+    DocumentTextIcon,
     ChartBarIcon
 } from '@heroicons/react/24/outline';
 
@@ -13,9 +14,17 @@ interface QuickActionProps {
     icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
     onClick: () => void;
     color: 'blue' | 'green' | 'purple' | 'orange';
+    disabled?: boolean;
 }
 
-function QuickActionCard({ title, description, icon: Icon, onClick, color }: QuickActionProps) {
+function QuickActionCard({
+    title,
+    description,
+    icon: Icon,
+    onClick,
+    color,
+    disabled = false
+}: QuickActionProps) {
     const colorClasses = {
         blue: 'bg-blue-500 hover:bg-blue-600 group-hover:shadow-blue-200',
         green: 'bg-green-500 hover:bg-green-600 group-hover:shadow-green-200',
@@ -33,39 +42,49 @@ function QuickActionCard({ title, description, icon: Icon, onClick, color }: Qui
     return (
         <button
             onClick={onClick}
+            disabled={disabled}
             className={`
                 bg-white rounded-xl shadow-sm border border-gray-200 
-                p-4 hover:shadow-lg ${hoverShadowClasses[color]}
-                transition-all duration-300 text-left w-full group
-                transform hover:-translate-y-1 hover:border-gray-300
+                p-4 transition-all duration-300 text-left w-full group
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                active:transform active:translate-y-0
+                ${disabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : `hover:shadow-lg ${hoverShadowClasses[color]} cursor-pointer transform hover:-translate-y-1 hover:border-gray-300 active:transform active:translate-y-0`
+                }
             `}
         >
             <div className="flex flex-col items-center text-center space-y-3">
                 {/* Icon Container */}
                 <div className={`
-                    p-4 rounded-2xl ${colorClasses[color]} 
-                    transition-all duration-300 shadow-lg
-                    group-hover:scale-110 group-hover:shadow-xl
+                    p-4 rounded-2xl transition-all duration-300 shadow-lg
+                    ${disabled
+                        ? 'bg-gray-400'
+                        : `${colorClasses[color]} group-hover:scale-110 group-hover:shadow-xl`
+                    }
                 `}>
                     <Icon className="h-8 w-8 text-white" />
                 </div>
 
                 {/* Content Container */}
                 <div className="flex flex-col items-center space-y-1 w-full">
-                    <h3 className="
-                        text-sm font-bold text-gray-900 
-                        group-hover:text-gray-800 transition-colors duration-200
+                    <h3 className={`
+                        text-sm font-bold transition-colors duration-200
                         line-clamp-1 w-full
-                    ">
+                        ${disabled
+                            ? 'text-gray-500'
+                            : 'text-gray-900 group-hover:text-gray-800'
+                        }
+                    `}>
                         {title}
                     </h3>
-                    <p className="
-                        text-xs text-gray-600 group-hover:text-gray-700 
-                        transition-colors duration-200 leading-relaxed
+                    <p className={`
+                        text-xs transition-colors duration-200 leading-relaxed
                         line-clamp-2 w-full px-1
-                    ">
+                        ${disabled
+                            ? 'text-gray-400'
+                            : 'text-gray-600 group-hover:text-gray-700'
+                        }
+                    `}>
                         {description}
                     </p>
                 </div>
@@ -75,24 +94,38 @@ function QuickActionCard({ title, description, icon: Icon, onClick, color }: Qui
 }
 
 export default function QuickActions() {
+    const router = useRouter();
+
     const handleAddProduct = () => {
-        // Navigate to add product page
-        console.log('Navigate to add product');
+        try {
+            router.push('/admin/products?action=add');
+        } catch (error) {
+            console.error('Navigation error:', error);
+        }
     };
 
     const handleViewOrders = () => {
-        // Navigate to orders page
-        console.log('Navigate to orders');
+        try {
+            router.push('/admin/orders');
+        } catch (error) {
+            console.error('Navigation error:', error);
+        }
     };
 
-    const handleManageDelivery = () => {
-        // Navigate to delivery management
-        console.log('Navigate to delivery management');
+    const handleManageInvoice = () => {
+        try {
+            router.push('/admin/invoices');
+        } catch (error) {
+            console.error('Navigation error:', error);
+        }
     };
 
     const handleViewReports = () => {
-        // Navigate to reports
-        console.log('Navigate to reports');
+        try {
+            router.push('/admin/reports');
+        } catch (error) {
+            console.error('Navigation error:', error);
+        }
     };
 
     return (
@@ -126,10 +159,10 @@ export default function QuickActions() {
                         color="green"
                     />
                     <QuickActionCard
-                        title="Pengiriman"
-                        description="Kelola status pengiriman"
-                        icon={TruckIcon}
-                        onClick={handleManageDelivery}
+                        title="Kelola Invoice"
+                        description="Kelola invoice dan pembayaran"
+                        icon={DocumentTextIcon}
+                        onClick={handleManageInvoice}
                         color="purple"
                     />
                     <QuickActionCard

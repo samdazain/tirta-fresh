@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import ProductModal from '@/components/admin/Products/ProductModal';
 import DeleteConfirmModal from '@/components/admin/Products/DeleteConfirmModal';
@@ -19,6 +20,9 @@ interface Product {
 }
 
 export default function ProductsPage() {
+    const searchParams = useSearchParams();
+
+
     const {
         products,
         loading,
@@ -115,6 +119,13 @@ export default function ProductsPage() {
             setDeleteLoading(false);
         }
     }, [productToDelete, deleteProduct, handleCloseDeleteModal, showSuccess, showError]);
+
+    useEffect(() => {
+        const action = searchParams.get('action');
+        if (action === 'add') {
+            handleAddProduct();
+        }
+    }, [searchParams, handleAddProduct]);
 
     return (
         <div className="space-y-6">

@@ -4,13 +4,13 @@ import DashboardHeader from '@/components/admin/Dashboard/DashboardHeader';
 import DashboardStats from '@/components/admin/Dashboard/DashboardStats';
 import RecentOrders from '@/components/admin/Dashboard/RecentOrders';
 import QuickActions from '@/components/admin/Dashboard/QuickActions';
-import DebugInfo from '@/components/admin/Dashboard/DebugInfo';
+// import DebugInfo from '@/components/admin/Dashboard/DebugInfo';
 
 export default function Dashboard() {
     return (
         <div className="space-y-6">
             {/* Debug Info - only shows in development */}
-            <DebugInfo />
+            {/* <DebugInfo /> */}
 
             {/* Dashboard Header */}
             <DashboardHeader userName="Admin" />

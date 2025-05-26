@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PUBLIC_PATHS = ['/admin/login'];
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function middleware(request: NextRequest) {
@@ -11,46 +10,80 @@ export async function middleware(request: NextRequest) {
     console.log('Pathname:', pathname);
     console.log('Full URL:', request.url);
 
-    // Skip middleware for non-admin routes
-    if (!pathname.startsWith('/admin')) {
-        console.log('Not admin route, skipping middleware');
+    // Skip middleware for public routes and API routes that don't need protection
+    if (
+        pathname.startsWith('/api/admin/auth/login') ||
+        pathname.startsWith('/admin/login') ||
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/favicon.ico')
+    ) {
+        console.log('Public or API route, skipping middleware');
         return NextResponse.next();
     }
 
-    // Allow access to public admin paths
-    if (PUBLIC_PATHS.some(path => pathname === path)) {
-        console.log('Public admin path, allowing access');
-        return NextResponse.next();
+    // Protect admin routes
+    if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+        const token = request.cookies.get('admin-token')?.value;
+
+        if (!token) {
+            console.log('No token found, redirecting to login');
+            return NextResponse.redirect(new URL('/admin/login', request.url));
+        }
+
+        try {
+            const secret = new TextEncoder().encode(JWT_SECRET);
+            const { payload } = await jwtVerify(token, secret);
+
+            if (payload.role !== 'admin') {
+                console.log('Insufficient permissions, redirecting to login');
+                return NextResponse.redirect(new URL('/admin/login', request.url));
+            }
+
+            console.log('Token verified successfully:', payload);
+            return NextResponse.next();
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            return NextResponse.redirect(new URL('/admin/login', request.url));
+        }
     }
 
-    // Check for admin token
-    const token = request.cookies.get('admin-token')?.value;
-    console.log('Token exists:', !!token);
-    console.log('Token value (first 20 chars):', token ? token.substring(0, 20) + '...' : 'none');
+    // Protect admin API routes
+    if (pathname.startsWith('/api/admin') && !pathname.startsWith('/api/admin/auth')) {
+        const token = request.cookies.get('admin-token')?.value;
 
-    if (!token) {
-        console.log('No token found, redirecting to login');
-        const loginUrl = new URL('/admin/login', request.url);
-        console.log('Redirect URL:', loginUrl.toString());
-        return NextResponse.redirect(loginUrl);
+        if (!token) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
+        try {
+            const secret = new TextEncoder().encode(JWT_SECRET);
+            const { payload } = await jwtVerify(token, secret);
+
+            if (payload.role !== 'admin') {
+                return NextResponse.json(
+                    { error: 'Forbidden' },
+                    { status: 403 }
+                );
+            }
+
+            return NextResponse.next();
+        } catch {
+            return NextResponse.json(
+                { error: 'Invalid token' },
+                { status: 401 }
+            );
+        }
     }
 
-    try {
-        // Verify token using jose (Edge Runtime compatible)
-        const secret = new TextEncoder().encode(JWT_SECRET);
-        const { payload } = await jwtVerify(token, secret);
-        console.log('Token verified successfully:', payload);
-        console.log('=== MIDDLEWARE END - ALLOWING ACCESS ===');
-        return NextResponse.next();
-    } catch (error) {
-        console.log('Token verification failed:', error);
-        const response = NextResponse.redirect(new URL('/admin/login', request.url));
-        response.cookies.delete('admin-token');
-        console.log('=== MIDDLEWARE END - REDIRECTING DUE TO INVALID TOKEN ===');
-        return response;
-    }
+    return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/admin/:path*'],
+    matcher: [
+        '/admin/:path*',
+        '/api/admin/:path*'
+    ]
 };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import AdminLayoutWrapper from '@/components/admin/Layout/AdminLayoutWrapper';
 
 const poppins = Poppins({
     subsets: ["latin"],
@@ -20,7 +21,9 @@ export default function AdminRootLayout({
     return (
         <html lang="en">
             <body className={`${poppins.variable} antialiased font-poppins bg-gray-50`}>
-                {children}
+                <AdminLayoutWrapper>
+                    {children}
+                </AdminLayoutWrapper>
             </body>
         </html>
     );
