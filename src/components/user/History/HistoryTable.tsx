@@ -1,42 +1,102 @@
-import React, { JSX } from "react";
+'use client';
+
+import React, { JSX, useState, useEffect } from "react";
 import RowTable from "./RowTable";
 
-// Mock data - replace with your actual data source
-const historyData = [
-    {
-        id: 1,
-        customerName: "Rif** And******",
-        itemCount: "5 Item",
-        location: "Kalianyar",
-        address: "Jalan Merpati No. 20",
-        status: "Dalam Pengiriman" as const
-    },
-    {
-        id: 2,
-        customerName: "Sam** Zai*****",
-        itemCount: "20 Item",
-        location: "Sumberpenganten",
-        address: "Jalan Kuda No. 20",
-        status: "Selesai" as const
-    },
-    {
-        id: 3,
-        customerName: "Fer** Muh*****",
-        itemCount: "20 Item",
-        location: "Sumberpenganten",
-        address: "Jalan Kuda No. 20",
-        status: "Ditangguhkan" as const
-    }
-];
+interface OrderHistory {
+    id: number;
+    customerName: string;
+    itemCount: string;
+    location: string;
+    address: string;
+    status: "Ditangguhkan" | "Selesai" | "Dalam Pengiriman";
+    createdAt: string;
+}
 
 export default function HistoryTable(): JSX.Element {
-    return (
-        <div className="w-[1127px] h-auto min-h-[744px] relative">
-            {/* Background Container */}
-            <div className="w-full h-full absolute bg-gradient-to-b from-[#4d53d2] to-[#272b6c] rounded-[20px]"></div>
+    const [orders, setOrders] = useState<OrderHistory[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-            {/* Table Content */}
-            <div className="relative p-[27px] flex flex-col space-y-2">
+    useEffect(() => {
+        const fetchOrderHistory = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('/api/user/history');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch order history');
+                }
+
+                const data = await response.json();
+
+                // Map status to match component expectations
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const mappedOrders = data.map((order: any) => ({
+                    ...order,
+                    status: mapOrderStatus(order.status)
+                }));
+
+                setOrders(mappedOrders);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+                console.error('Error fetching order history:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrderHistory();
+    }, []);
+
+    // Map database status to display status
+    const mapOrderStatus = (dbStatus: string): "Ditangguhkan" | "Selesai" | "Dalam Pengiriman" => {
+        switch (dbStatus) {
+            case 'DITANGGUHKAN':
+                return 'Ditangguhkan';
+            case 'SELESAI':
+                return 'Selesai';
+            case 'DALAM_PENGIRIMAN':
+                return 'Dalam Pengiriman';
+            default:
+                return 'Dalam Pengiriman';
+        }
+    };
+
+    const renderContent = () => {
+        if (loading) {
+            return (
+                <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    <span className="ml-3 text-white">Memuat riwayat pesanan...</span>
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <div className="flex justify-center items-center py-12">
+                    <div className="text-white text-center">
+                        <p className="text-lg font-semibold mb-2">Gagal memuat riwayat pesanan</p>
+                        <p className="text-sm opacity-80">{error}</p>
+                    </div>
+                </div>
+            );
+        }
+
+        if (orders.length === 0) {
+            return (
+                <div className="flex justify-center items-center py-12">
+                    <div className="text-white text-center">
+                        <p className="text-lg font-semibold mb-2">Tidak ada pesanan dalam 2 hari terakhir</p>
+                        <p className="text-sm opacity-80">Pesanan Anda akan muncul di sini setelah dibuat</p>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <>
                 {/* Table Header */}
                 <div
                     data-property-1="Default"
@@ -73,7 +133,7 @@ export default function HistoryTable(): JSX.Element {
                 </div>
 
                 {/* Table Rows */}
-                {historyData.map((order) => (
+                {orders.map((order) => (
                     <RowTable
                         key={order.id}
                         customerName={order.customerName}
@@ -87,8 +147,18 @@ export default function HistoryTable(): JSX.Element {
                         showLeadingCheckbox={false}
                     />
                 ))}
+            </>
+        );
+    };
 
-                {/* You can add pagination or load more button here if needed */}
+    return (
+        <div className="w-[1127px] h-auto min-h-[744px] relative">
+            {/* Background Container */}
+            <div className="w-full h-full absolute bg-gradient-to-b from-[#4d53d2] to-[#272b6c] rounded-[20px]"></div>
+
+            {/* Table Content */}
+            <div className="relative p-[27px] flex flex-col space-y-2">
+                {renderContent()}
             </div>
         </div>
     );

@@ -24,7 +24,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ onClose }) => {
 
                 <button
                     onClick={onClose}
-                    className="w-64 h-12 bg-green-600 rounded-[10px] text-white text-xl font-bold"
+                    className="w-64 h-12 bg-green-600 rounded-[10px] text-white text-xl font-bold cursor-pointer hover:bg-green-700 transition-colors duration-200"
                 >
                     Kembali ke Beranda
                 </button>

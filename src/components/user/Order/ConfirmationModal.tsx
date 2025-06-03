@@ -20,14 +20,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ onConfirm, onCanc
                 <div className="flex gap-6">
                     <button
                         onClick={onConfirm}
-                        className="w-44 h-20 bg-green-600 rounded-[10px] text-white text-2xl font-bold"
+                        className="w-44 h-20 bg-green-600 rounded-[10px] text-white text-2xl font-bold cursor-pointer hover:bg-green-700 transition-colors"
                     >
                         Ya, Sudah
                     </button>
 
                     <button
                         onClick={onCancel}
-                        className="w-44 h-20 bg-red-600 rounded-[10px] text-white text-2xl font-bold"
+                        className="w-44 h-20 bg-red-600 rounded-[10px] text-white text-2xl font-bold cursor-pointer hover:bg-red-700 transition-colors"
                     >
                         Kembali
                     </button>

@@ -10,13 +10,16 @@ import { useRouter } from 'next/navigation';
 interface Product {
     id: number;
     name: string;
-    price: string;
+    price: number;
+    stock: number;
+    imageUrl: string;
+    category: string;
 }
 
 interface CartItem {
     id: number;
     name: string;
-    price: string;
+    price: number;
     quantity: number;
 }
 
@@ -24,11 +27,13 @@ export default function Order() {
     const router = useRouter();
     const [cart, setCart] = useState<CartItem[]>([]);
     const [addressInfo, setAddressInfo] = useState<AddressInfo>({
-        location: '',
+        villageId: 0,
+        villageName: '',
         fullAddress: '',
         customerName: ''
     });
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleAddToCart = (product: Product) => {
         setCart(prevCart => {
@@ -53,25 +58,51 @@ export default function Order() {
         });
     };
 
-    const handleCheckout = () => {
-        // In a real application, you would send the order to your backend
-        console.log('Order submitted:', {
-            items: cart,
-            address: addressInfo,
-            total: calculateTotal()
-        });
+    const handleCheckout = async (paymentProofFile: File) => {
+        if (!addressInfo.villageId || !addressInfo.fullAddress || !addressInfo.customerName) {
+            alert('Mohon lengkapi semua informasi pengiriman');
+            return;
+        }
 
-        // Show success modal instead of alert
-        setShowSuccessModal(true);
-    };
+        if (cart.length === 0) {
+            alert('Keranjang belanja kosong');
+            return;
+        }
 
-    const calculateTotal = () => {
-        const subtotal = cart.reduce((total, item) => {
-            const price = parseInt(item.price.replace(/\D/g, ''));
-            return total + (price * item.quantity);
-        }, 0);
+        if (!paymentProofFile) {
+            alert('Mohon upload bukti pembayaran');
+            return;
+        }
 
-        return subtotal + 5000; // Adding 5000 for shipping
+        setIsSubmitting(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('customerName', addressInfo.customerName);
+            formData.append('fullAddress', addressInfo.fullAddress);
+            formData.append('villageId', addressInfo.villageId.toString());
+            formData.append('items', JSON.stringify(cart));
+            formData.append('paymentProof', paymentProofFile);
+
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Order created successfully:', data);
+                setShowSuccessModal(true);
+            } else {
+                const errorData = await response.json();
+                alert('Gagal membuat pesanan: ' + errorData.error);
+            }
+        } catch (error) {
+            console.error('Error creating order:', error);
+            alert('Terjadi kesalahan saat membuat pesanan');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -85,7 +116,11 @@ export default function Order() {
                 {/* Address and Billing */}
                 <div className="space-y-8">
                     <AddressDelivery onAddressChange={setAddressInfo} />
-                    <Billing cartItems={cart} onCheckout={handleCheckout} />
+                    <Billing
+                        cartItems={cart}
+                        onCheckout={handleCheckout}
+                        isSubmitting={isSubmitting}
+                    />
                 </div>
             </div>
 

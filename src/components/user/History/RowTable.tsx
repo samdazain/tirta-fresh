@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { FaUser } from "react-icons/fa"; // Import the user icon from react-icons
+import { FaUser } from "react-icons/fa";
 
 interface RowTableProps {
     customerName: string;
@@ -45,7 +45,7 @@ export default function RowTable({
             data-show-column-6={showColumn6}
             data-show-leading-checkbox={showLeadingCheckbox}
             data-type="Content"
-            className="w-[1073px] py-4 bg-white rounded-[10px] border-b border-black/20 inline-flex justify-start items-center gap-2"
+            className="w-[1073px] py-4 bg-white rounded-[10px] border-b border-black/20 inline-flex justify-start items-center gap-2 hover:bg-gray-50 transition-colors duration-200"
         >
             <div className="flex-1 flex justify-center items-center gap-8">
                 {/* Customer Name Column */}
@@ -94,7 +94,7 @@ export default function RowTable({
                     data-caption="Top"
                     className="w-40 inline-flex flex-col justify-center items-center gap-0.5"
                 >
-                    <div className="text-center justify-start text-[#101113] text-sm font-medium leading-tight">
+                    <div className="text-center justify-start text-[#101113] text-sm font-medium leading-tight truncate" title={address}>
                         {address}
                     </div>
                 </div>

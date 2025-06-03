@@ -30,14 +30,10 @@ const formatCurrency = (amount: number) => {
 
 const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-        gallon: 'Gallon',
-        bottle: 'Bottle',
-        glass: 'Glass',
-        other: 'Other',
-        GALON: 'Gallon',
-        BOTOL: 'Bottle',
-        GELAS: 'Glass',
-        LAINNYA: 'Other'
+        GALON: 'Galon',
+        BOTOL: 'Botol',
+        GELAS: 'Gelas',
+        LAINNYA: 'Lainnya'
     };
     return labels[category] || category;
 };
@@ -59,7 +55,7 @@ const ProductRow = memo(({ product, onEdit, onDelete }: {
             product.imageUrl.startsWith('/'));
 
     return (
-        <tr className="hover:bg-gray-50 transition-colors">
+        <tr className="hover:bg-gray-50 transition-colors duration-200 cursor-default">
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
@@ -111,15 +107,15 @@ const ProductRow = memo(({ product, onEdit, onDelete }: {
                 <div className="flex items-center justify-end space-x-2">
                     <button
                         onClick={() => onEdit(product)}
-                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-colors"
-                        title="Edit product"
+                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-all duration-200 cursor-pointer transform hover:scale-110"
+                        title="Edit produk"
                     >
                         <Pencil size={18} />
                     </button>
                     <button
                         onClick={() => onDelete(product)}
-                        className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-colors"
-                        title="Delete product"
+                        className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-all duration-200 cursor-pointer transform hover:scale-110"
+                        title="Hapus produk"
                     >
                         <Trash2 size={18} />
                     </button>
@@ -156,9 +152,9 @@ export default function ProductTable({ products, onEdit, onDelete, loading }: Pr
         return (
             <div className="bg-white rounded-lg shadow border border-gray-200 p-12 text-center">
                 <Package2 size={64} className="mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada produk ditemukan</h3>
                 <p className="text-gray-500">
-                    Start by adding your first product or try adjusting your search criteria.
+                    Mulai dengan menambahkan produk pertama Anda atau coba sesuaikan kriteria pencarian.
                 </p>
             </div>
         );
@@ -171,19 +167,19 @@ export default function ProductTable({ products, onEdit, onDelete, loading }: Pr
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Product
+                                Produk
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Category
+                                Kategori
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Price
+                                Harga
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Stock
+                                Stok
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>

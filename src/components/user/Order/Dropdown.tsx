@@ -30,14 +30,16 @@ const Dropdown: React.FC<DropdownProps> = ({ options, value, onChange, label }) 
             </div>
 
             <div
-                className="w-full h-14 bg-zinc-300 rounded-[10px] flex items-center cursor-pointer"
+                className="w-full h-14 bg-zinc-300 rounded-[10px] flex items-center cursor-pointer hover:bg-zinc-400 transition-colors duration-200"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="ml-4 text-black text-xl font-medium truncate pr-12">
                     {value || "Select an option"}
                 </div>
 
-                <ChevronDownIcon className="w-8 h-8 absolute right-4 text-indigo-900" />
+                <ChevronDownIcon className="w-8 h-8 absolute right-4 text-indigo-900 transition-transform duration-200" style={{
+                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                }} />
             </div>
 
             {isOpen && (
@@ -46,7 +48,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, value, onChange, label }) 
                         {options.map((option) => (
                             <div
                                 key={option}
-                                className="w-full h-10 bg-slate-700 text-white flex items-center justify-center text-xl font-normal cursor-pointer hover:bg-slate-600"
+                                className="w-full h-10 bg-slate-700 text-white flex items-center justify-center text-xl font-normal cursor-pointer hover:bg-slate-600 transition-colors duration-200"
                                 onClick={() => {
                                     onChange(option);
                                     setIsOpen(false);

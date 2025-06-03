@@ -21,10 +21,10 @@ interface ProductModalProps {
 }
 
 const CATEGORY_OPTIONS = [
-    { value: 'gallon', label: 'Gallon' },
-    { value: 'bottle', label: 'Bottle' },
-    { value: 'glass', label: 'Glass' },
-    { value: 'other', label: 'Other' },
+    { value: 'GALON', label: 'Galon' },
+    { value: 'BOTOL', label: 'Botol' },
+    { value: 'GELAS', label: 'Gelas' },
+    { value: 'LAINNYA', label: 'Lainnya' },
 ] as const;
 
 export default function ProductModal({
@@ -36,9 +36,9 @@ export default function ProductModal({
 }: ProductModalProps) {
     const [formData, setFormData] = useState({
         name: product?.name || '',
-        price: product?.price || 0,
-        category: product?.category || 'gallon',
-        stock: product?.stock || 0,
+        price: product?.price || '',
+        category: product?.category || 'GALON',
+        stock: product?.stock || '',
         imageUrl: product?.imageUrl || ''
     });
 
@@ -48,15 +48,17 @@ export default function ProductModal({
         const newErrors: Record<string, string> = {};
 
         if (!formData.name.trim()) {
-            newErrors.name = 'Product name is required';
+            newErrors.name = 'Nama produk wajib diisi';
         }
 
-        if (formData.price <= 0) {
-            newErrors.price = 'Price must be greater than 0';
+        const priceNum = typeof formData.price === 'string' ? parseFloat(formData.price) : formData.price;
+        if (!priceNum || priceNum <= 0) {
+            newErrors.price = 'Harga harus lebih dari 0';
         }
 
-        if (formData.stock < 0) {
-            newErrors.stock = 'Stock cannot be negative';
+        const stockNum = typeof formData.stock === 'string' ? parseInt(formData.stock) : formData.stock;
+        if (stockNum < 0 || isNaN(stockNum)) {
+            newErrors.stock = 'Stok tidak boleh negatif';
         }
 
         setErrors(newErrors);
@@ -67,7 +69,7 @@ export default function ProductModal({
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'price' || name === 'stock' ? parseInt(value) || 0 : value
+            [name]: value
         }));
 
         // Clear error when user starts typing
@@ -96,9 +98,11 @@ export default function ProductModal({
         if (!validateForm()) return;
 
         try {
-            // Ensure we have a default image if none is provided
+            // Convert string values to numbers for submission
             const dataToSave = {
                 ...formData,
+                price: typeof formData.price === 'string' ? parseFloat(formData.price) : formData.price,
+                stock: typeof formData.stock === 'string' ? parseInt(formData.stock) : formData.stock,
                 imageUrl: formData.imageUrl || '/images/products/default.jpg'
             };
             await onSave(dataToSave);
@@ -108,11 +112,11 @@ export default function ProductModal({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+            <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                 <div className="p-6">
                     <h2 className="text-xl font-bold mb-6 text-gray-900">
-                        {isNew ? 'Add New Product' : 'Edit Product'}
+                        {isNew ? 'Tambah Produk Baru' : 'Edit Produk'}
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,7 +133,7 @@ export default function ProductModal({
                             {/* Product Name */}
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Product Name *
+                                    Nama Produk *
                                 </label>
                                 <input
                                     type="text"
@@ -139,7 +143,7 @@ export default function ProductModal({
                                     onChange={handleChange}
                                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
                                         }`}
-                                    placeholder="Enter product name"
+                                    placeholder="Masukkan nama produk"
                                     disabled={loading}
                                 />
                                 {errors.name && (
@@ -151,7 +155,7 @@ export default function ProductModal({
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Price (Rp) *
+                                        Harga (Rp) *
                                     </label>
                                     <input
                                         type="number"
@@ -160,7 +164,7 @@ export default function ProductModal({
                                         value={formData.price}
                                         onChange={handleChange}
                                         min="0"
-                                        step="1000"
+                                        step="1"
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.price ? 'border-red-300' : 'border-gray-300'
                                             }`}
                                         placeholder="0"
@@ -173,7 +177,7 @@ export default function ProductModal({
 
                                 <div>
                                     <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Stock *
+                                        Stok *
                                     </label>
                                     <input
                                         type="number"
@@ -196,7 +200,7 @@ export default function ProductModal({
                             {/* Category */}
                             <div>
                                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category *
+                                    Kategori *
                                 </label>
                                 <select
                                     id="category"
@@ -220,17 +224,17 @@ export default function ProductModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200 cursor-pointer hover:shadow-md"
                                 disabled={loading}
                             >
-                                Cancel
+                                Batal
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 transition-colors"
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 transition-all duration-200 cursor-pointer hover:shadow-md transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:transform-none"
                                 disabled={loading}
                             >
-                                {loading ? 'Saving...' : (isNew ? 'Create Product' : 'Save Changes')}
+                                {loading ? 'Menyimpan...' : (isNew ? 'Buat Produk' : 'Simpan Perubahan')}
                             </button>
                         </div>
                     </form>

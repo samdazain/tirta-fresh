@@ -11,11 +11,11 @@ interface ProductFiltersProps {
 }
 
 const CATEGORY_OPTIONS = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'gallon', label: 'Gallon' },
-    { value: 'bottle', label: 'Bottle' },
-    { value: 'glass', label: 'Glass' },
-    { value: 'other', label: 'Other' },
+    { value: 'all', label: 'Semua Kategori' },
+    { value: 'GALON', label: 'Galon' },
+    { value: 'BOTOL', label: 'Botol' },
+    { value: 'GELAS', label: 'Gelas' },
+    { value: 'LAINNYA', label: 'Lainnya' },
 ] as const;
 
 const ProductFilters = memo(({
@@ -33,7 +33,7 @@ const ProductFilters = memo(({
                     </div>
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder="Cari produk..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

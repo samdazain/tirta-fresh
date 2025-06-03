@@ -115,7 +115,7 @@ export default function ProductList({ products, onEdit, onDelete, loading }: Pro
                         {products.map((product) => {
                             const stockStatus = getStockStatus(product.stock);
                             return (
-                                <tr key={product.id} className="hover:bg-gray-50">
+                                <tr key={product.id} className="hover:bg-gray-50 transition-colors duration-200 cursor-default">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="h-16 w-16 flex-shrink-0">
@@ -151,14 +151,14 @@ export default function ProductList({ products, onEdit, onDelete, loading }: Pro
                                         <div className="flex items-center justify-end space-x-2">
                                             <button
                                                 onClick={() => onEdit(product)}
-                                                className="text-blue-600 hover:text-blue-900 p-1"
+                                                className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-all duration-200 cursor-pointer transform hover:scale-110"
                                                 title="Edit produk"
                                             >
                                                 <PencilIcon className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteClick(product.id)}
-                                                className="text-red-600 hover:text-red-900 p-1"
+                                                className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-all duration-200 cursor-pointer transform hover:scale-110"
                                                 title="Hapus produk"
                                             >
                                                 <TrashIcon className="h-4 w-4" />
@@ -174,8 +174,8 @@ export default function ProductList({ products, onEdit, onDelete, loading }: Pro
 
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div className="fixed inset-0 bg-black bg-opacity-30 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-2xl rounded-md bg-white bg-opacity-95 backdrop-blur-sm">
                         <div className="mt-3 text-center">
                             <h3 className="text-lg font-medium text-gray-900">Hapus Produk</h3>
                             <div className="mt-2 px-7 py-3">
@@ -186,13 +186,13 @@ export default function ProductList({ products, onEdit, onDelete, loading }: Pro
                             <div className="flex gap-4 px-4 py-3">
                                 <button
                                     onClick={() => handleConfirmDelete(deleteConfirm)}
-                                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none"
+                                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none cursor-pointer transition-all duration-200 hover:shadow-md transform hover:scale-[1.02]"
                                 >
                                     Hapus
                                 </button>
                                 <button
                                     onClick={() => setDeleteConfirm(null)}
-                                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 focus:outline-none"
+                                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 focus:outline-none cursor-pointer transition-all duration-200 hover:shadow-md transform hover:scale-[1.02]"
                                 >
                                     Batal
                                 </button>
