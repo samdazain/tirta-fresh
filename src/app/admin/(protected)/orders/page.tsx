@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { AlertCircle } from 'lucide-react';
 import OrdersFilters from '@/components/admin/Orders/OrdersFilters';
 import OrdersTable from '@/components/admin/Orders/OrdersTable';
 import PaymentProofModal from '@/components/admin/Orders/PaymentProofModal';
 import OrderDetailsModal from '@/components/admin/Orders/OrderDetailsModal';
+import { filterOrdersByTimeframe } from '@/utils/dateFilters';
 
 interface OrderItem {
     id: number;
@@ -30,17 +31,24 @@ interface Order {
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [timeframeFilter, setTimeframeFilter] = useState('all');
 
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [viewPaymentProof, setViewPaymentProof] = useState(false);
     const [viewOrderDetails, setViewOrderDetails] = useState(false);
 
-    const fetchOrders = useCallback(async () => {
-        setLoading(true);
+    const fetchOrders = useCallback(async (isRefresh = false) => {
+        if (isRefresh) {
+            setRefreshing(true);
+        } else {
+            setLoading(true);
+        }
+
         try {
             const queryParams = new URLSearchParams();
 
@@ -56,16 +64,25 @@ export default function OrdersPage() {
 
             const data = await response.json();
             setOrders(data.orders);
+            setError(null); // Clear any existing errors on successful fetch
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
         } finally {
-            setLoading(false);
+            if (isRefresh) {
+                setRefreshing(false);
+            } else {
+                setLoading(false);
+            }
         }
     }, [statusFilter]);
 
     // Fetch orders on component mount and when status filter changes
     useEffect(() => {
         fetchOrders();
+    }, [fetchOrders]);
+
+    const handleRefresh = useCallback(() => {
+        fetchOrders(true);
     }, [fetchOrders]);
 
     const handleViewPaymentProof = (order: Order) => {
@@ -121,15 +138,25 @@ export default function OrdersPage() {
         await handleUpdateOrderStatus(selectedOrder.id, 'DITANGGUHKAN');
     };
 
-    // Filter orders based on search term
-    const filteredOrders = orders.filter(order => {
-        const matchesSearch =
-            order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.id.toString().includes(searchTerm) ||
-            order.village.toLowerCase().includes(searchTerm.toLowerCase());
+    // Combined filtering logic with useMemo for performance
+    const filteredOrders = useMemo(() => {
+        let filtered = orders;
 
-        return matchesSearch;
-    });
+        // Apply timeframe filter first
+        filtered = filterOrdersByTimeframe(filtered, timeframeFilter);
+
+        // Apply search filter
+        filtered = filtered.filter(order => {
+            const matchesSearch =
+                order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                order.id.toString().includes(searchTerm) ||
+                order.village.toLowerCase().includes(searchTerm.toLowerCase());
+
+            return matchesSearch;
+        });
+
+        return filtered;
+    }, [orders, searchTerm, timeframeFilter]);
 
     return (
         <div className="space-y-6">
@@ -137,6 +164,9 @@ export default function OrdersPage() {
                 <h1 className="text-2xl font-bold text-gray-900">Manajemen Pesanan</h1>
                 <div className="text-sm text-gray-500">
                     {filteredOrders.length} dari {orders.length} pesanan
+                    {refreshing && (
+                        <span className="ml-2 text-blue-600">• Memperbarui...</span>
+                    )}
                 </div>
             </div>
 
@@ -159,8 +189,12 @@ export default function OrdersPage() {
             <OrdersFilters
                 searchTerm={searchTerm}
                 statusFilter={statusFilter}
+                timeframeFilter={timeframeFilter}
                 onSearchChange={setSearchTerm}
                 onStatusChange={setStatusFilter}
+                onTimeframeChange={setTimeframeFilter}
+                onRefresh={handleRefresh}
+                isRefreshing={refreshing}
             />
 
             {/* Orders list */}
@@ -179,7 +213,7 @@ export default function OrdersPage() {
                     <AlertCircle size={64} className="mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada pesanan ditemukan</h3>
                     <p className="text-gray-500">
-                        {searchTerm || statusFilter !== 'all'
+                        {searchTerm || statusFilter !== 'all' || timeframeFilter !== 'all'
                             ? "Coba sesuaikan kriteria pencarian atau filter Anda."
                             : "Belum ada pesanan yang dibuat."}
                     </p>

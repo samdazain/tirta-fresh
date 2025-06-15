@@ -80,7 +80,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ onAddToCart }) => {
             <h1 className="text-indigo-600 text-3xl font-bold mb-6">Order</h1>
 
             {/* Category Title with Dropdown */}
-            <div className="w-full mb-8 relative" ref={dropdownRef}>
+            <div className="w-[600px] mb-8 relative" ref={dropdownRef}>
                 <div className="w-80 h-11 relative">
                     <div className="w-80 h-11 left-0 top-0 absolute bg-gradient-to-r from-indigo-600 to-slate-700 rounded-[10px]" />
                     <div className="w-64 left-[21.68px] top-[4px] absolute justify-start text-white text-2xl font-bold font-['Poppins']">

@@ -161,7 +161,7 @@ export default function ListProduct({ title, category }: ListProductProps): JSX.
                     <div className="flex justify-center items-center mt-6 gap-4">
                         <button
                             onClick={prevPage}
-                            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none"
+                            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none cursor-pointer transition-colors duration-200"
                             aria-label="Previous page"
                         >
                             <ChevronLeftIcon className="h-6 w-6 text-gray-700" />
@@ -171,7 +171,7 @@ export default function ListProduct({ title, category }: ListProductProps): JSX.
                             {Array.from({ length: totalPages }).map((_, idx) => (
                                 <span
                                     key={idx}
-                                    className={`inline-block size-2 mx-1 rounded-full cursor-pointer ${currentPage === idx ? 'bg-blue-600' : 'bg-gray-300'}`}
+                                    className={`inline-block size-2 mx-1 rounded-full cursor-pointer transition-colors duration-200 hover:scale-110 ${currentPage === idx ? 'bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'}`}
                                     role="button"
                                     onClick={() => setCurrentPage(idx)}
                                     aria-label={`Page ${idx + 1}`}
@@ -181,7 +181,7 @@ export default function ListProduct({ title, category }: ListProductProps): JSX.
 
                         <button
                             onClick={nextPage}
-                            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none"
+                            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none cursor-pointer transition-colors duration-200"
                             aria-label="Next page"
                         >
                             <ChevronRightIcon className="h-6 w-6 text-gray-700" />

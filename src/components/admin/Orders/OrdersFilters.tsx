@@ -1,18 +1,26 @@
 import React from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Calendar, RefreshCw } from 'lucide-react';
 
 interface OrdersFiltersProps {
     searchTerm: string;
     statusFilter: string;
+    timeframeFilter: string;
     onSearchChange: (value: string) => void;
     onStatusChange: (value: string) => void;
+    onTimeframeChange: (value: string) => void;
+    onRefresh: () => void;
+    isRefreshing?: boolean;
 }
 
 const OrdersFilters: React.FC<OrdersFiltersProps> = ({
     searchTerm,
     statusFilter,
+    timeframeFilter,
     onSearchChange,
-    onStatusChange
+    onStatusChange,
+    onTimeframeChange,
+    onRefresh,
+    isRefreshing = false
 }) => {
     return (
         <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -32,18 +40,49 @@ const OrdersFilters: React.FC<OrdersFiltersProps> = ({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Filter size={18} className="text-gray-500" />
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => onStatusChange(e.target.value)}
-                        className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
+                <div className="flex items-center gap-4">
+                    {/* Timeframe Filter */}
+                    <div className="flex items-center gap-2">
+                        <Calendar size={18} className="text-gray-500" />
+                        <select
+                            value={timeframeFilter}
+                            onChange={(e) => onTimeframeChange(e.target.value)}
+                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
+                        >
+                            <option value="all">Semua Waktu</option>
+                            <option value="today">Hari Ini</option>
+                            <option value="week">Minggu Ini</option>
+                            <option value="month">Bulan Ini</option>
+                        </select>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-2">
+                        <Filter size={18} className="text-gray-500" />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => onStatusChange(e.target.value)}
+                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
+                        >
+                            <option value="all">Semua Status</option>
+                            <option value="DALAM_PENGIRIMAN">Dalam Pengiriman</option>
+                            <option value="SELESAI">Selesai</option>
+                            <option value="DITANGGUHKAN">Ditangguhkan</option>
+                        </select>
+                    </div>
+
+                    {/* Refresh Button */}
+                    <button
+                        onClick={onRefresh}
+                        disabled={isRefreshing}
+                        className="p-2 border border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        title="Refresh data pesanan"
                     >
-                        <option value="all">Semua Pesanan</option>
-                        <option value="DALAM_PENGIRIMAN">Dalam Pengiriman</option>
-                        <option value="SELESAI">Selesai</option>
-                        <option value="DITANGGUHKAN">Ditangguhkan</option>
-                    </select>
+                        <RefreshCw
+                            size={18}
+                            className={`text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                        />
+                    </button>
                 </div>
             </div>
         </div>
