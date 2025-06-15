@@ -128,7 +128,7 @@ export default function ReportChart({ title, data, type, height = 300 }: ReportC
             <div className="flex items-center space-x-8">
                 <svg width="200" height="200" viewBox="0 0 200 200">
                     {data.map((item, index) => {
-                        const percentage = (item.value / total) * 100;
+                        // const percentage = (item.value / total) * 100;
                         const angle = (item.value / total) * 360;
                         const startAngle = currentAngle;
                         const endAngle = currentAngle + angle;

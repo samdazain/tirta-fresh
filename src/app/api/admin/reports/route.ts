@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
+import { PrismaClient } from '@prisma/client';
+import {
+    startOfDay, endOfDay, subDays,
+    startOfWeek, endOfWeek, subWeeks,
+    startOfMonth, endOfMonth, subMonths,
+    startOfQuarter, endOfQuarter, subQuarters,
+    startOfYear, endOfYear,
+    format, getQuarter
+} from 'date-fns';
+import { id } from 'date-fns/locale';
+
+const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const type = url.searchParams.get('type') || 'daily';
         const periods = parseInt(url.searchParams.get('periods') || '7');
+        const year = parseInt(url.searchParams.get('year') || new Date().getFullYear().toString());
 
         const currentDate = new Date();
         const reports = [];
@@ -20,57 +31,95 @@ export async function GET(request: NextRequest) {
             let endDate: Date;
             let label: string;
 
-            if (type === 'daily') {
-                const targetDate = subDays(currentDate, i);
-                startDate = startOfDay(targetDate);
-                endDate = endOfDay(targetDate);
-                label = format(targetDate, 'dd MMM yyyy');
-            } else if (type === 'weekly') {
-                const targetDate = subDays(currentDate, i * 7);
-                startDate = startOfWeek(targetDate);
-                endDate = endOfWeek(targetDate);
-                label = `Week of ${format(startDate, 'dd MMM')}`;
-            } else { // monthly
-                const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-                startDate = startOfMonth(targetDate);
-                endDate = endOfMonth(targetDate);
-                label = format(targetDate, 'MMM yyyy');
+            switch (type) {
+                case 'daily':
+                    const targetDate = subDays(currentDate, i);
+                    startDate = startOfDay(targetDate);
+                    endDate = endOfDay(targetDate);
+                    label = format(targetDate, 'dd MMM yyyy', { locale: id });
+                    break;
+
+                case 'weekly':
+                    const weekDate = subWeeks(currentDate, i);
+                    startDate = startOfWeek(weekDate, { weekStartsOn: 1 });
+                    endDate = endOfWeek(weekDate, { weekStartsOn: 1 });
+                    label = `Minggu ${format(startDate, 'dd MMM', { locale: id })} - ${format(endDate, 'dd MMM yyyy', { locale: id })}`;
+                    break;
+
+                case 'monthly':
+                    const monthDate = subMonths(currentDate, i);
+                    startDate = startOfMonth(monthDate);
+                    endDate = endOfMonth(monthDate);
+                    label = format(monthDate, 'MMMM yyyy', { locale: id });
+                    break;
+
+                case 'quarterly':
+                    const quarterDate = subQuarters(currentDate, i);
+                    startDate = startOfQuarter(quarterDate);
+                    endDate = endOfQuarter(quarterDate);
+                    const quarter = getQuarter(quarterDate);
+                    label = `Q${quarter} ${format(quarterDate, 'yyyy')}`;
+                    break;
+
+                case 'yearly':
+                    const yearDate = new Date(year - i, 0, 1);
+                    startDate = startOfYear(yearDate);
+                    endDate = endOfYear(yearDate);
+                    label = format(yearDate, 'yyyy');
+                    break;
+
+                default:
+                    throw new Error('Invalid report type');
             }
 
-            // Fix: Use correct status from schema and include invoice for total
+            // Fetch orders with SELESAI status
             const orders = await prisma.order.findMany({
                 where: {
                     createdAt: {
                         gte: startDate,
                         lte: endDate
                     },
-                    status: 'SELESAI' // Fix: Use correct status from schema
+                    status: 'SELESAI'
                 },
                 include: {
-                    invoice: true, // Fix: Get total from invoice
+                    invoice: true,
                     village: true
                 }
             });
 
-            // Calculate period metrics from JSON items and invoice
+            // Calculate period metrics
             let periodRevenue = 0;
             let periodItems = 0;
+            const itemBreakdown: Record<string, { quantity: number; revenue: number; category: string }> = {};
 
             orders.forEach(order => {
-                // Get total from invoice if exists
+                // Get total from invoice
                 if (order.invoice) {
                     periodRevenue += order.invoice.total;
                 }
 
-                // Parse JSON items to count quantities
+                // Parse JSON items
                 try {
                     const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items as string);
                     if (Array.isArray(items)) {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         items.forEach((item: any) => {
-                            if (item.quantity) {
-                                periodItems += parseInt(item.quantity) || 0;
+                            const quantity = parseInt(item.quantity) || 0;
+                            const price = parseInt(item.price) || 0;
+                            const name = item.name || 'Unknown Product';
+
+                            periodItems += quantity;
+
+                            if (!itemBreakdown[name]) {
+                                itemBreakdown[name] = {
+                                    quantity: 0,
+                                    revenue: 0,
+                                    category: item.category || 'General'
+                                };
                             }
+
+                            itemBreakdown[name].quantity += quantity;
+                            itemBreakdown[name].revenue += price * quantity;
                         });
                     }
                 } catch (e) {
@@ -79,10 +128,18 @@ export async function GET(request: NextRequest) {
             });
 
             reports.push({
-                dateLabel: label,
+                period: label,
+                dateRange: {
+                    start: startDate.toISOString(),
+                    end: endDate.toISOString()
+                },
                 totalRevenue: periodRevenue,
                 totalItems: periodItems,
-                totalOrders: orders.length
+                totalOrders: orders.length,
+                itemBreakdown: Object.entries(itemBreakdown).map(([name, data]) => ({
+                    name,
+                    ...data
+                })).sort((a, b) => b.revenue - a.revenue)
             });
 
             totalRevenue += periodRevenue;
@@ -90,85 +147,46 @@ export async function GET(request: NextRequest) {
             totalOrders += orders.length;
         }
 
-        // Get product sales for the entire period
-        const startPeriod = type === 'daily' ? subDays(currentDate, periods) :
-            type === 'weekly' ? subDays(currentDate, periods * 7) :
-                new Date(currentDate.getFullYear(), currentDate.getMonth() - periods, 1);
+        // Get overall product sales for the entire period
+        const allItemBreakdown: Record<string, { quantity: number; revenue: number; category: string }> = {};
 
-        const allOrders = await prisma.order.findMany({
-            where: {
-                createdAt: {
-                    gte: startPeriod,
-                    lte: currentDate
-                },
-                status: 'SELESAI' // Fix: Use correct status
-            },
-            include: {
-                invoice: true
-            }
-        });
-
-        // Get all products to map IDs to names and categories
-        const products = await prisma.product.findMany();
-        const productMap = products.reduce((map, product) => {
-            map[product.id] = {
-                name: product.name,
-                category: product.category,
-                price: product.price
-            };
-            return map;
-        }, {} as Record<number, { name: string; category: string; price: number }>);
-
-        // Parse product sales from JSON items
-        const productSalesMap: Record<string, { quantity: number; revenue: number; category: string }> = {};
-
-        allOrders.forEach(order => {
-            try {
-                const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items as string);
-                if (Array.isArray(items)) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    items.forEach((item: any) => {
-                        const productId = parseInt(item.productId || item.id);
-                        const quantity = parseInt(item.quantity) || 0;
-                        const price = parseInt(item.price) || 0;
-
-                        if (productId && productMap[productId]) {
-                            const product = productMap[productId];
-                            const productName = product.name;
-
-                            if (!productSalesMap[productName]) {
-                                productSalesMap[productName] = {
-                                    quantity: 0,
-                                    revenue: 0,
-                                    category: product.category
-                                };
-                            }
-
-                            productSalesMap[productName].quantity += quantity;
-                            productSalesMap[productName].revenue += price * quantity;
-                        }
-                    });
+        reports.forEach(report => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            report.itemBreakdown.forEach((item: any) => {
+                if (!allItemBreakdown[item.name]) {
+                    allItemBreakdown[item.name] = {
+                        quantity: 0,
+                        revenue: 0,
+                        category: item.category
+                    };
                 }
-            } catch (e) {
-                console.warn('Could not parse order items for product sales:', e);
-            }
+                allItemBreakdown[item.name].quantity += item.quantity;
+                allItemBreakdown[item.name].revenue += item.revenue;
+            });
         });
 
-        const productSales = Object.entries(productSalesMap).map(([name, data]) => ({
+        const productSales = Object.entries(allItemBreakdown).map(([name, data]) => ({
             name,
             ...data
         })).sort((a, b) => b.revenue - a.revenue);
 
         return NextResponse.json({
+            reportType: type,
+            period: type === 'yearly' ? `${year}` : `Last ${periods} ${type}`,
             reports: reports.reverse(),
             summary: {
                 totalRevenue,
                 totalItems,
-                totalOrders
+                totalOrders,
+                averageOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
+                periodsAnalyzed: periods
             },
             productSales,
-            period: `Last ${periods} ${type}`,
-            generatedAt: new Date().toISOString()
+            metadata: {
+                generatedAt: new Date().toISOString(),
+                currency: 'IDR',
+                timezone: 'Asia/Jakarta'
+            }
         }, { status: 200 });
 
     } catch (error) {
@@ -177,5 +195,7 @@ export async function GET(request: NextRequest) {
             error: 'Failed to generate reports',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
     }
 }

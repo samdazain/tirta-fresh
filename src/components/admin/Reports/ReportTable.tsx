@@ -5,6 +5,7 @@ import React from 'react';
 interface Column {
     key: string;
     title: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render?: (value: any, row: any) => React.ReactNode;
     align?: 'left' | 'center' | 'right';
 }
@@ -12,6 +13,7 @@ interface Column {
 interface ReportTableProps {
     title: string;
     columns: Column[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any[];
     maxRows?: number;
 }
@@ -19,6 +21,7 @@ interface ReportTableProps {
 export default function ReportTable({ title, columns, data, maxRows = 10 }: ReportTableProps) {
     const displayData = maxRows ? data.slice(0, maxRows) : data;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formatValue = (value: any) => {
         if (typeof value === 'number') {
             return value.toLocaleString();
@@ -40,7 +43,7 @@ export default function ReportTable({ title, columns, data, maxRows = 10 }: Repo
                                 <th
                                     key={column.key}
                                     className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${column.align === 'right' ? 'text-right' :
-                                            column.align === 'center' ? 'text-center' : 'text-left'
+                                        column.align === 'center' ? 'text-center' : 'text-left'
                                         }`}
                                 >
                                     {column.title}
@@ -55,7 +58,7 @@ export default function ReportTable({ title, columns, data, maxRows = 10 }: Repo
                                     <td
                                         key={column.key}
                                         className={`px-6 py-4 whitespace-nowrap text-sm ${column.align === 'right' ? 'text-right' :
-                                                column.align === 'center' ? 'text-center' : 'text-left'
+                                            column.align === 'center' ? 'text-center' : 'text-left'
                                             }`}
                                     >
                                         {column.render
