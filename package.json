@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.tsx"
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.8.2",
+    "@prisma/client": "^6.9.0",
     "@react-google-maps/api": "^2.20.6",
     "@types/bcryptjs": "^3.0.0",
     "@types/jspdf": "^2.0.0",

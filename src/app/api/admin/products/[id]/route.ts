@@ -5,17 +5,18 @@ import { ProductCategory } from '@prisma/client';
 // GET single product by ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = parseInt(params.id, 10);
+        const { id } = await params;
+        const orderId = parseInt(id);
 
-        if (isNaN(id)) {
+        if (isNaN(orderId)) {
             return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
         }
 
         const product = await prisma.product.findUnique({
-            where: { id }
+            where: { id: orderId },
         });
 
         if (!product) {
@@ -32,12 +33,13 @@ export async function GET(
 // UPDATE product by ID
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = parseInt(params.id, 10);
+        const { id } = await params;
+        const productId = parseInt(id);
 
-        if (isNaN(id)) {
+        if (isNaN(productId)) {
             return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
         }
 
@@ -46,7 +48,7 @@ export async function PATCH(
 
         // Check if product exists
         const existingProduct = await prisma.product.findUnique({
-            where: { id }
+            where: { id: productId }
         });
 
         if (!existingProduct) {
@@ -75,7 +77,7 @@ export async function PATCH(
 
         // Update the product
         const updatedProduct = await prisma.product.update({
-            where: { id },
+            where: { id: productId },
             data: {
                 name: name.trim(),
                 price: parseInt(price.toString()),
@@ -102,18 +104,19 @@ export async function PATCH(
 // DELETE product by ID
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = parseInt(params.id, 10);
+        const { id } = await params;
+        const productId = parseInt(id);
 
-        if (isNaN(id)) {
+        if (isNaN(productId)) {
             return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
         }
 
         // Check if product exists
         const existingProduct = await prisma.product.findUnique({
-            where: { id }
+            where: { id: productId }
         });
 
         if (!existingProduct) {
@@ -122,7 +125,7 @@ export async function DELETE(
 
         // Delete the product
         await prisma.product.delete({
-            where: { id }
+            where: { id: productId }
         });
 
         return NextResponse.json({

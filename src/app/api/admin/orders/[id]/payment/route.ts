@@ -1,87 +1,146 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient, OrderStatus } from '@prisma/client';
 
-// Using the same in-memory store as in the main orders route
-// In a real application, this would be fetched from a database
-const orders = [
-    {
-        id: 101,
-        customerName: 'John Doe',
-        items: [
-            { id: 1, name: 'Gallon 19L', price: 25000, quantity: 2 },
-            { id: 3, name: 'Small Bottle (330ml)', price: 3000, quantity: 5 },
-        ],
-        total: 65000,
-        address: '123 Main St, Jakarta',
-        paymentProof: '/uploads/payments/101.jpg',
-        status: 'pending',
-        createdAt: '2023-11-20T10:23:15Z',
-        updatedAt: '2023-11-20T10:23:15Z',
-    },
-    // Other orders...
-];
+const prisma = new PrismaClient();
 
 // GET payment proof for an order
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const orderId = parseInt(params.id, 10);
+    try {
+        const { id } = await params;
+        const orderId = parseInt(id);
 
-    const order = orders.find(o => o.id === orderId);
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+                payment: true
+            }
+        });
 
-    if (!order) {
-        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        if (!order) {
+            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        if (!order.payment) {
+            return NextResponse.json({ error: 'Payment proof not found' }, { status: 404 });
+        }
+
+        // Return the payment proof as a blob
+        const headers = new Headers();
+        headers.set('Content-Type', 'image/jpeg'); // Adjust based on your image format
+        headers.set('Content-Length', order.payment.blobData.byteLength.toString());
+
+        return new NextResponse(Buffer.from(order.payment.blobData), {
+            status: 200,
+            headers
+        });
+
+    } catch (error) {
+        console.error('Error fetching payment proof:', error);
+        return NextResponse.json({ error: 'Failed to fetch payment proof' }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
     }
-
-    if (!order.paymentProof) {
-        return NextResponse.json({ error: 'Payment proof not found' }, { status: 404 });
-    }
-
-    // In a real application, you might want to handle file access differently
-    return NextResponse.json({ paymentProof: order.paymentProof }, { status: 200 });
 }
 
 // PATCH order status (accept/reject payment)
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const orderId = parseInt(params.id, 10);
+        const { id } = await params;
+        const orderId = parseInt(id);
         const body = await request.json();
         const { action } = body;
 
-        const orderIndex = orders.findIndex(o => o.id === orderId);
+        const result = await prisma.$transaction(async (tx) => {
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    village: true,
+                    payment: true,
+                    invoice: true
+                }
+            });
 
-        if (orderIndex === -1) {
-            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-        }
+            if (!order) {
+                throw new Error('Order not found');
+            }
 
-        let newStatus;
+            let newStatus;
 
-        // Update status based on action
-        if (action === 'accept') {
-            newStatus = 'processing';
-        } else if (action === 'reject') {
-            newStatus = 'payment_rejected';
-        } else {
-            return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-        }
+            // Update status based on action
+            if (action === 'accept') {
+                newStatus = OrderStatus.SELESAI;
+            } else if (action === 'reject') {
+                newStatus = OrderStatus.DITANGGUHKAN;
 
-        // Update the order
-        orders[orderIndex] = {
-            ...orders[orderIndex],
-            status: newStatus,
-            updatedAt: new Date().toISOString()
-        };
+                // Restore stock when rejecting payment
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const items = order.items as any[];
+                for (const item of items) {
+                    const product = await tx.product.findUnique({
+                        where: { id: item.id }
+                    });
+
+                    if (product) {
+                        await tx.product.update({
+                            where: { id: item.id },
+                            data: {
+                                stock: product.stock + item.quantity
+                            }
+                        });
+                    }
+                }
+            } else {
+                throw new Error('Invalid action');
+            }
+
+            // Update the order
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: newStatus,
+                    updatedAt: new Date()
+                },
+                include: {
+                    village: true,
+                    payment: true,
+                    invoice: true
+                }
+            });
+
+            return updatedOrder;
+        });
 
         return NextResponse.json({
             message: `Payment ${action === 'accept' ? 'accepted' : 'rejected'} successfully`,
-            order: orders[orderIndex]
+            order: {
+                id: result.id,
+                customerName: result.customerName,
+                fullAddress: result.fullAddress,
+                village: result.village.name,
+                items: result.items,
+                total: result.invoice?.total || 0,
+                status: result.status,
+                paymentProof: result.payment ? `/api/admin/orders/${result.id}/payment-proof` : null,
+                createdAt: result.createdAt.toISOString(),
+                updatedAt: result.updatedAt.toISOString()
+            }
         }, { status: 200 });
 
     } catch (error) {
         console.error('Error updating payment status:', error);
+
+        if (error instanceof Error) {
+            return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+
         return NextResponse.json({ error: 'Failed to update payment status' }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
     }
 }

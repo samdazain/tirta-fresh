@@ -3,11 +3,11 @@
 import React, { useState, useRef, useEffect, JSX } from 'react';
 import Product from './Product';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-
+import { StaticImageData } from 'next/image';
 interface ProductItem {
     id: number;
     name: string;
-    imageUrl: string;
+    imageUrl: StaticImageData;
     price: string;
 }
 
@@ -69,7 +69,7 @@ export default function ProductSlider({ products, itemsToShow = 4 }: ProductSlid
                             <div key={product.id} className="flex-shrink-0">
                                 <Product
                                     name={product.name}
-                                    imageUrl={product.imageUrl}
+                                    image={product.imageUrl}
                                     price={product.price}
                                     onClick={() => console.log(`Selected product: ${product.name}`)}
                                 />
