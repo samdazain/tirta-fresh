@@ -105,11 +105,12 @@ export default function OrdersPage() {
                 body: JSON.stringify({ status: newStatus }),
             });
 
-            if (!response.ok) {
-                throw new Error('Gagal memperbarui status pesanan');
-            }
-
             const data = await response.json();
+
+            if (!response.ok) {
+                // Handle specific error messages for stock issues
+                throw new Error(data.error || 'Gagal memperbarui status pesanan');
+            }
 
             // Update order in state
             setOrders(orders.map(order =>
@@ -121,9 +122,15 @@ export default function OrdersPage() {
             setViewOrderDetails(false);
             setSelectedOrder(null);
 
+            // Show success message if provided
+            if (data.message) {
+                console.log('Status update success:', data.message);
+            }
+
             return true;
         } catch (error) {
-            setError(error instanceof Error ? error.message : 'Gagal memperbarui status pesanan');
+            const errorMessage = error instanceof Error ? error.message : 'Gagal memperbarui status pesanan';
+            setError(errorMessage);
             return false;
         }
     };
