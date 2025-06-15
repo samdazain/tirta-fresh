@@ -37,7 +37,7 @@ const OrdersFilters: React.FC<OrdersFiltersProps> = ({
                     <select
                         value={statusFilter}
                         onChange={(e) => onStatusChange(e.target.value)}
-                        className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
                     >
                         <option value="all">Semua Pesanan</option>
                         <option value="DALAM_PENGIRIMAN">Dalam Pengiriman</option>

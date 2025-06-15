@@ -5,10 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const orderId = parseInt(params.id);
+        const { id } = await params;
+        const orderId = parseInt(id);
 
         const payment = await prisma.payment.findUnique({
             where: { orderId: orderId }

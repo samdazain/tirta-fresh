@@ -22,7 +22,7 @@ export default function HistoryTable(): JSX.Element {
         const fetchOrderHistory = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/user/history');
+                const response = await fetch('/api/history');
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch order history');

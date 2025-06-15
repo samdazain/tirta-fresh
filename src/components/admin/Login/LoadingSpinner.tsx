@@ -1,3 +1,5 @@
+'use client';
+
 interface LoadingSpinnerProps {
     size?: 'small' | 'medium' | 'large';
 }
@@ -5,13 +7,15 @@ interface LoadingSpinnerProps {
 export default function LoadingSpinner({ size = 'medium' }: LoadingSpinnerProps) {
     const sizeClasses = {
         small: 'h-4 w-4',
-        medium: 'h-8 w-8',
-        large: 'h-12 w-12'
+        medium: 'h-6 w-6',
+        large: 'h-8 w-8'
     };
 
     return (
-        <div className="flex items-center justify-center">
-            <div className={`${sizeClasses[size]} animate-spin rounded-full border-2 border-gray-300 border-t-blue-600`}></div>
+        <div className="flex justify-center items-center">
+            <div
+                className={`${sizeClasses[size]} border-2 border-white border-t-transparent rounded-full animate-spin`}
+            />
         </div>
     );
 }

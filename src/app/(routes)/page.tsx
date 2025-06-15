@@ -23,10 +23,10 @@ export default function Home() {
                 <h2 className="text-[32px] font-bold text-[#4d53d2] mb-12 text-center">
                     Produk Kami
                 </h2>
-                <ListProduct title="Air Mineral Galon" category="galon" />
-                <ListProduct title="Air Mineral Botol" category="botol" />
-                <ListProduct title="Air Mineral Gelas" category="gelas" />
-                <ListProduct title="Produk Lainnya" category="produk_lain" />
+                <ListProduct title="Air Mineral Galon" category="GALON" />
+                <ListProduct title="Air Mineral Botol" category="BOTOL" />
+                <ListProduct title="Air Mineral Gelas" category="GELAS" />
+                <ListProduct title="Produk Lainnya" category="LAINNYA" />
             </div>
 
             <div className="mb-16 bg-gradient-to-r p-10 rounded-[20px] w-[1039px]">

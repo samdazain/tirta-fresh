@@ -8,8 +8,8 @@ import {
     ShoppingCart,
     AlertCircle
 } from 'lucide-react';
-import { useToast } from '@/context/ToastContext';
 
+import { useToast } from '@/contexts/ToastContext';
 interface SalesData {
     period: string;
     totalSales: number;

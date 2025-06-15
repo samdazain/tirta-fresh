@@ -1,52 +1,67 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
-interface AdminUser {
+interface Admin {
+    id: number;
     name: string;
-    role: string;
+    email: string;
 }
 
 interface AdminContextType {
-    user: AdminUser | null;
+    admin: Admin | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
-    checkAuth: () => Promise<void>;
+    checkSession: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-export function AdminProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<AdminUser | null>(null);
+export const useAdmin = () => {
+    const context = useContext(AdminContext);
+    if (context === undefined) {
+        throw new Error('useAdmin must be used within an AdminProvider');
+    }
+    return context;
+};
+
+interface AdminProviderProps {
+    children: ReactNode;
+}
+
+export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
+    const [admin, setAdmin] = useState<Admin | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
-    const checkAuth = async () => {
+    const checkSession = async () => {
         try {
+            setIsLoading(true);
             const response = await fetch('/api/admin/auth/session', {
                 method: 'GET',
                 credentials: 'include',
-                cache: 'no-store',
             });
 
             if (response.ok) {
                 const data = await response.json();
                 if (data.authenticated) {
-                    setUser(data.user);
+                    setAdmin(data.admin);
                     setIsAuthenticated(true);
                 } else {
-                    setUser(null);
+                    setAdmin(null);
                     setIsAuthenticated(false);
                 }
             } else {
-                setUser(null);
+                setAdmin(null);
                 setIsAuthenticated(false);
             }
         } catch (error) {
-            console.error('Auth check error:', error);
-            setUser(null);
+            console.error('Session check failed:', error);
+            setAdmin(null);
             setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
@@ -54,25 +69,27 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     };
 
     const login = async (username: string, password: string) => {
-        const response = await fetch('/api/admin/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include',
-        });
+        try {
+            const response = await fetch('/api/admin/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+                credentials: 'include',
+            });
 
-        const data = await response.json();
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Login gagal');
+            }
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Login failed');
-        }
-
-        if (data.authenticated) {
-            await checkAuth(); // Refresh user data
-        } else {
-            throw new Error('Authentication failed');
+            const data = await response.json();
+            setAdmin(data.admin);
+            setIsAuthenticated(true);
+        } catch (error) {
+            console.error('Login failed:', error);
+            throw error;
         }
     };
 
@@ -83,38 +100,29 @@ export function AdminProvider({ children }: { children: ReactNode }) {
                 credentials: 'include',
             });
         } catch (error) {
-            console.error('Logout error:', error);
+            console.error('Logout failed:', error);
         } finally {
-            setUser(null);
+            setAdmin(null);
             setIsAuthenticated(false);
-            window.location.href = '/admin/login';
+            // Redirect to login page after logout
+            router.push('/admin/login');
         }
     };
 
     useEffect(() => {
-        checkAuth();
+        checkSession();
     }, []);
 
     return (
-        <AdminContext.Provider
-            value={{
-                user,
-                isAuthenticated,
-                isLoading,
-                login,
-                logout,
-                checkAuth,
-            }}
-        >
+        <AdminContext.Provider value={{
+            admin,
+            isAuthenticated,
+            isLoading,
+            login,
+            logout,
+            checkSession
+        }}>
             {children}
         </AdminContext.Provider>
     );
-}
-
-export function useAdmin() {
-    const context = useContext(AdminContext);
-    if (context === undefined) {
-        throw new Error('useAdmin must be used within an AdminProvider');
-    }
-    return context;
-}
+};

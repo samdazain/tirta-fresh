@@ -8,7 +8,7 @@ import DeleteConfirmModal from '@/components/admin/Products/DeleteConfirmModal';
 import ProductTable from '@/components/admin/Products/ProductTable';
 import ProductFilters from '@/components/admin/Products/ProductFilters';
 import { useProducts, useProductFilters } from '@/hooks/useProducts';
-import { useToast } from '@/context/ToastContext';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Product {
     id: number;
@@ -132,15 +132,15 @@ export default function ProductsPage() {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
-                    <p className="text-gray-600">Manage your product inventory</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Manajemen Produk</h1>
+                    <p className="text-gray-600">Kelola inventori produk Anda</p>
                 </div>
                 <button
                     onClick={handleAddProduct}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
                 >
                     <Plus size={20} />
-                    <span>Add Product</span>
+                    <span>Tambah Produk</span>
                 </button>
             </div>
 

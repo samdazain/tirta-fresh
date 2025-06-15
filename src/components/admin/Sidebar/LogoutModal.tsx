@@ -34,7 +34,7 @@ export default function LogoutModal({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div
                 className="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-200"
                 onClick={(e) => e.stopPropagation()}
@@ -76,14 +76,14 @@ export default function LogoutModal({
                     <button
                         onClick={onCancel}
                         disabled={isLoggingOut}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:cursor-pointer"
                     >
                         Batal
                     </button>
                     <button
                         onClick={handleConfirm}
                         disabled={isLoggingOut}
-                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 cursor-pointer hover:cursor-pointer"
                     >
                         {isLoggingOut ? (
                             <>

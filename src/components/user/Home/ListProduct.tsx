@@ -26,12 +26,13 @@ export default function ListProduct({ title, category }: ListProductProps): JSX.
 
     useEffect(() => {
         fetchProducts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [category]);
 
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/user/products?category=${category}`);
+            const response = await fetch(`/api/products?category=${category}`);
             const data = await response.json();
 
             if (response.ok) {

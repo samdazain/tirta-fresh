@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     return []
   },
   // Ensure trailing slash behavior is consistent
-  trailingSlash: false,
+  trailingSlash: false
 }
 
 export default nextConfig

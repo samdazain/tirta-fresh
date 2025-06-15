@@ -6,18 +6,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    console.log('=== MIDDLEWARE START ===');
-    console.log('Pathname:', pathname);
-    console.log('Full URL:', request.url);
-
     // Skip middleware for public routes and API routes that don't need protection
     if (
-        pathname.startsWith('/api/admin/auth/login') ||
+        pathname.startsWith('/api/admin/auth') ||
         pathname.startsWith('/admin/login') ||
         pathname.startsWith('/_next') ||
-        pathname.startsWith('/favicon.ico')
+        pathname.startsWith('/favicon.ico') ||
+        pathname.startsWith('/api/orders') ||
+        pathname.startsWith('/api/products') ||
+        pathname.startsWith('/api/villages') ||
+        pathname.startsWith('/api/history')
     ) {
-        console.log('Public or API route, skipping middleware');
         return NextResponse.next();
     }
 
@@ -26,7 +25,6 @@ export async function middleware(request: NextRequest) {
         const token = request.cookies.get('admin-token')?.value;
 
         if (!token) {
-            console.log('No token found, redirecting to login');
             return NextResponse.redirect(new URL('/admin/login', request.url));
         }
 
@@ -35,11 +33,9 @@ export async function middleware(request: NextRequest) {
             const { payload } = await jwtVerify(token, secret);
 
             if (payload.role !== 'admin') {
-                console.log('Insufficient permissions, redirecting to login');
                 return NextResponse.redirect(new URL('/admin/login', request.url));
             }
 
-            console.log('Token verified successfully:', payload);
             return NextResponse.next();
         } catch (error) {
             console.error('Token verification failed:', error);
@@ -70,7 +66,8 @@ export async function middleware(request: NextRequest) {
             }
 
             return NextResponse.next();
-        } catch {
+        } catch (error) {
+            console.error('API token verification failed:', error);
             return NextResponse.json(
                 { error: 'Invalid token' },
                 { status: 401 }

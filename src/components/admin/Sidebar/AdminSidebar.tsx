@@ -70,7 +70,7 @@ function NavItem({ href, label, icon: Icon, activeIcon: ActiveIcon, isVisible = 
 }
 
 export default function AdminSidebar() {
-    const { user, logout } = useAdmin();
+    const { admin, logout } = useAdmin();
     const [isHovered, setIsHovered] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -118,7 +118,7 @@ export default function AdminSidebar() {
                         <UserCircleIcon className="h-8 w-8 text-slate-400" />
                         <div>
                             <p className="text-sm font-medium text-white">
-                                {user?.name || 'Admin User'}
+                                {admin?.name || 'Admin User'}
                             </p>
                             <p className="text-xs text-slate-400">Administrator</p>
                         </div>
@@ -194,7 +194,7 @@ export default function AdminSidebar() {
                             w-full flex items-center px-4 py-3 rounded-xl
                             text-slate-400 hover:text-red-400 hover:bg-red-950/30
                             transition-all duration-200 ease-in-out
-                            group
+                            group cursor-pointer
                         "
                     >
                         <ArrowRightStartOnRectangleIcon className="h-5 w-5 mr-3 group-hover:text-red-400 transition-colors" />
@@ -221,7 +221,7 @@ export default function AdminSidebar() {
                 isOpen={showLogoutModal}
                 onConfirm={handleLogoutConfirm}
                 onCancel={handleLogoutCancel}
-                userName={user?.name}
+                userName={admin?.name}
             />
         </>
     );

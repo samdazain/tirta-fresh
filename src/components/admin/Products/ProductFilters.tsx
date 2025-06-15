@@ -46,7 +46,7 @@ const ProductFilters = memo(({
                 <select
                     value={categoryFilter}
                     onChange={(e) => onCategoryChange(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
                 >
                     {CATEGORY_OPTIONS.map(option => (
                         <option key={option.value} value={option.value}>

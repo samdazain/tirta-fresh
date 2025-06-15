@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
-import { ToastProvider } from "@/context/ToastContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 // Load Poppins font with various weights
 const poppins = Poppins({
