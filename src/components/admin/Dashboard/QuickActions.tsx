@@ -1,11 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
     PlusIcon,
     ClipboardDocumentListIcon,
     DocumentTextIcon,
-    ChartBarIcon
+    ChartBarIcon,
+    ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 interface QuickActionProps {
@@ -15,7 +17,15 @@ interface QuickActionProps {
     onClick: () => void;
     color: 'blue' | 'green' | 'purple' | 'orange';
     disabled?: boolean;
+    badge?: number;
 }
+
+// interface LowStockProduct {
+//     id: number;
+//     name: string;
+//     stock: number;
+//     category: string;
+// }
 
 function QuickActionCard({
     title,
@@ -23,7 +33,8 @@ function QuickActionCard({
     icon: Icon,
     onClick,
     color,
-    disabled = false
+    disabled = false,
+    badge
 }: QuickActionProps) {
     const colorClasses = {
         blue: 'bg-blue-500 hover:bg-blue-600 group-hover:shadow-blue-200',
@@ -45,7 +56,7 @@ function QuickActionCard({
             disabled={disabled}
             className={`
                 bg-white rounded-xl shadow-sm border border-gray-200 
-                p-4 transition-all duration-300 text-left w-full group
+                p-4 transition-all duration-300 text-left w-full group relative
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                 ${disabled
                     ? 'opacity-50 cursor-not-allowed'
@@ -53,6 +64,13 @@ function QuickActionCard({
                 }
             `}
         >
+            {/* Badge */}
+            {badge !== undefined && badge > 0 && (
+                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                    {badge > 99 ? '99+' : badge}
+                </div>
+            )}
+
             <div className="flex flex-col items-center text-center space-y-3">
                 {/* Icon Container */}
                 <div className={`
@@ -95,6 +113,25 @@ function QuickActionCard({
 
 export default function QuickActions() {
     const router = useRouter();
+    const [lowStockCount, setLowStockCount] = useState(0);
+    const [pendingCount, setPendingCount] = useState(0);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const response = await fetch('/api/admin/dashboard');
+                if (response.ok) {
+                    const data = await response.json();
+                    setLowStockCount(data.lowStockProducts?.length || 0);
+                    setPendingCount(data.stats?.pendingDeliveries || 0);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
 
     const handleAddProduct = () => {
         try {
@@ -129,51 +166,81 @@ export default function QuickActions() {
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center">
-                    <span className="w-1 h-6 bg-blue-500 rounded-full mr-3"></span>
-                    Aksi Cepat
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                    Akses cepat ke fitur utama sistem
-                </p>
-            </div>
+        <div className="space-y-6">
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center">
+                        <span className="w-1 h-6 bg-blue-500 rounded-full mr-3"></span>
+                        Aksi Cepat
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                        Akses cepat ke fitur utama sistem
+                    </p>
+                </div>
 
-            {/* Actions Grid */}
-            <div className="p-6">
-                <div className="grid grid-cols-2 gap-4">
-                    <QuickActionCard
-                        title="Tambah Produk"
-                        description="Tambahkan produk baru ke inventory"
-                        icon={PlusIcon}
-                        onClick={handleAddProduct}
-                        color="blue"
-                    />
-                    <QuickActionCard
-                        title="Kelola Pesanan"
-                        description="Lihat dan kelola pesanan masuk"
-                        icon={ClipboardDocumentListIcon}
-                        onClick={handleViewOrders}
-                        color="green"
-                    />
-                    <QuickActionCard
-                        title="Kelola Invoice"
-                        description="Kelola invoice dan pembayaran"
-                        icon={DocumentTextIcon}
-                        onClick={handleManageInvoice}
-                        color="purple"
-                    />
-                    <QuickActionCard
-                        title="Laporan"
-                        description="Lihat laporan dan analitik"
-                        icon={ChartBarIcon}
-                        onClick={handleViewReports}
-                        color="orange"
-                    />
+                {/* Actions Grid */}
+                <div className="p-6">
+                    <div className="grid grid-cols-2 gap-4">
+                        <QuickActionCard
+                            title="Tambah Produk"
+                            description="Tambahkan produk baru ke inventory"
+                            icon={PlusIcon}
+                            onClick={handleAddProduct}
+                            color="blue"
+                            badge={lowStockCount}
+                        />
+                        <QuickActionCard
+                            title="Kelola Pesanan"
+                            description="Lihat dan kelola pesanan masuk"
+                            icon={ClipboardDocumentListIcon}
+                            onClick={handleViewOrders}
+                            color="green"
+                            badge={pendingCount}
+                        />
+                        <QuickActionCard
+                            title="Kelola Invoice"
+                            description="Kelola invoice dan pembayaran"
+                            icon={DocumentTextIcon}
+                            onClick={handleManageInvoice}
+                            color="purple"
+                        />
+                        <QuickActionCard
+                            title="Laporan"
+                            description="Lihat laporan dan analitik"
+                            icon={ChartBarIcon}
+                            onClick={handleViewReports}
+                            color="orange"
+                        />
+                    </div>
                 </div>
             </div>
+
+            {/* Low Stock Alert */}
+            {lowStockCount > 0 && (
+                <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden">
+                    <div className="px-6 py-4 bg-orange-50 border-b border-orange-200">
+                        <div className="flex items-center">
+                            <ExclamationTriangleIcon className="h-5 w-5 text-orange-600 mr-2" />
+                            <h3 className="text-sm font-bold text-orange-900">
+                                Peringatan Stok Rendah
+                            </h3>
+                        </div>
+                    </div>
+                    <div className="p-6">
+                        <p className="text-sm text-gray-600 mb-3">
+                            {lowStockCount} produk memiliki stok rendah (kurang dari 10 unit)
+                        </p>
+                        <button
+                            onClick={() => router.push('/admin/products?filter=low-stock')}
+                            className="text-sm bg-orange-100 text-orange-800 px-3 py-1 rounded-lg hover:bg-orange-200 transition-colors cursor-pointer"
+                        >
+                            Lihat Produk
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
