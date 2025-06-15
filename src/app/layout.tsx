@@ -13,7 +13,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Tirta Fresh",
-  description: "Depot Air Mineral Tuban Terpercaya!",
+  description: "Depot Air Mineral Jombang Terpercaya!",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
